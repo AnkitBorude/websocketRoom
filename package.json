@@ -1,0 +1,15 @@
+{
+  "name": "websocket",
+  "version": "1.0.0",
+  "description": "demo",
+  "main": "n",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "ankit borude",
+  "license": "ISC",
+  "dependencies": {
+    "@types/node": "^24.1.0",
+    "ts-node": "^10.9.2"
+  }
+}
