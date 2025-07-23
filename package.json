@@ -5,7 +5,9 @@
   "main": "n",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start":"ts-node"
+    "start": "ts-node",
+    "lint": "eslint",
+    "lint:fix": "eslint --fix"
   },
   "author": "ankit borude",
   "license": "ISC",
@@ -14,5 +16,13 @@
     "@types/ws": "^8.18.1",
     "ts-node": "^10.9.2",
     "ws": "^8.18.3"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.31.0",
+    "eslint": "^9.31.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^16.3.0",
+    "prettier": "^3.6.2",
+    "typescript-eslint": "^8.38.0"
   }
 }
