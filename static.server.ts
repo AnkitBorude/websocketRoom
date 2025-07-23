@@ -14,7 +14,8 @@ const FILE_EXT_MIME_TYPE_MAP = new Map([
   [".png", "image/png"],
   [".jpg", "image/jpg"],
 ]);
-const server = http.createServer((req, res) => {
+
+export const server = http.createServer((req, res) => {
   let resourcePath: string = "";
 
   if (req.url === "/") {
