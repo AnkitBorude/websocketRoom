@@ -4,12 +4,15 @@
   "description": "demo",
   "main": "n",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start":"ts-node"
   },
   "author": "ankit borude",
   "license": "ISC",
   "dependencies": {
     "@types/node": "^24.1.0",
-    "ts-node": "^10.9.2"
+    "@types/ws": "^8.18.1",
+    "ts-node": "^10.9.2",
+    "ws": "^8.18.3"
   }
 }

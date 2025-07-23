@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <h1>Hello From Server </h1>
+    <p>Lorem ipsum dolor sit, amet consectetur adipisicing elit. Hic, 
+        temporibus! Voluptatem voluptate, ab explicabo, at alias enim aliquid, iusto commodi
+         incidunt vero culpa sint quasi doloribus esse minima deserunt. Maxime.</p>
+    <dl>
+  <dt>Coffee</dt>
+  <dd>- black hot drink</dd>
+  <dt>Milk</dt>
+  <dd>- white cold drink
+  </dd>
+
+  <h2>WebSocket Client</h2>
+  <input type="text" id="msg" placeholder="Type a message" />
+  <button onclick="send()">Send</button>
+  <div id="messages"></div>
+
+  <!-- <script>
+    const socket = new WebSocket('ws://localhost:3000');
+
+    socket.onopen = () => console.log('Connected to server');
+
+    socket.onmessage = (event) => {
+      appendMessage(event.data,false);
+    };
+
+    socket.onclose = () => console.log('Connection closed');
+    socket.onerror = (err) => console.error('Error:', err);
+
+    function send() {
+      const input = document.getElementById('msg');
+      dataTOSend=input.value.toString().trim();
+      socket.send(dataTOSend);
+      appendMessage(dataTOSend,true);
+      input.value = '';
+    }
+
+    function appendMessage(msg,isSent)
+    {
+      const h3=document.createElement('p');
+      if(isSent)
+    {
+      h3.style.fontWeight='bold';
+      h3.textContent="SENT : " +msg;
+    }else
+    {
+      h3.style.fontWeight='normal';
+      h3.textContent='RECIEVED: '+msg;
+    }
+
+    document.getElementById('messages').appendChild(h3);
+
+    }
+  </script> -->
+</body>
+</dl>
+</body>
+</html>
