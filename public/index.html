@@ -18,11 +18,11 @@
   </dd>
 
   <h2>WebSocket Client</h2>
-  <input type="text" id="msg" placeholder="Type a message" />
+  <textarea cols="4" rows="5" type="text" id="msg" placeholder="Type a message" />
   <button onclick="send()">Send</button>
   <div id="messages"></div>
 
-  <!-- <script>
+  <script>
     const socket = new WebSocket('ws://localhost:3000');
 
     socket.onopen = () => console.log('Connected to server');
@@ -56,9 +56,8 @@
     }
 
     document.getElementById('messages').appendChild(h3);
-
     }
-  </script> -->
+  </script>
 </body>
 </dl>
 </body>

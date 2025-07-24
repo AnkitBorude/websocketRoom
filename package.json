@@ -8,7 +8,9 @@
     "start": "ts-node",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "prepare": "husky"
+    "prepare": "husky",
+    "format":"prettier . -c",
+    "format:write":"prettier . -w"
   },
   "author": "ankit borude",
   "license": "ISC",
