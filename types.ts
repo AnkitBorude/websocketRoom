@@ -33,8 +33,14 @@ export type ConnectionMessage = {
   message: string;
 };
 
+export type LeaveMessage = {
+  type: RequstType.LEAVE;
+  roomId: number;
+  message: string;
+};
+
 export type RoomNotificationMessage = {
   type: "notify";
   message: string;
-  notificationOf: RequstType.JOIN | RequstType.MESSAGE;
+  notificationOf: RequstType.JOIN | RequstType.MESSAGE | RequstType.LEAVE;
 };

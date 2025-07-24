@@ -3,7 +3,7 @@ import fs from "fs";
 import path from "path";
 
 const STATIC_FILE_DIR_NAME = "public";
-const PORT = 3000;
+
 const OCTET_TYPE = "application/octet-stream";
 
 const FILE_EXT_MIME_TYPE_MAP = new Map([
@@ -16,6 +16,16 @@ const FILE_EXT_MIME_TYPE_MAP = new Map([
 ]);
 
 export const server = http.createServer((req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*"); // Allow all origins
+  res.setHeader("Access-Control-Allow-Methods", "OPTIONS, GET, POST");
+  res.setHeader("Access-Control-Max-Age", 2592000); // Cache preflight requests for 30 days
+
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    res.end();
+    return;
+  }
+
   let resourcePath: string = "";
 
   if (req.url === "/") {
@@ -50,8 +60,4 @@ export const server = http.createServer((req, res) => {
       res.end(`Server Error: ${error.message}`);
     }
   });
-});
-
-server.listen(PORT, () => {
-  console.log("Server Listening on port " + PORT);
 });

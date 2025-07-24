@@ -4,4 +4,5 @@ export enum RequstType {
   MESSAGE = "message",
   RENAME = "rename",
   CONNECT = "connect",
+  LEAVE = "leave",
 }
