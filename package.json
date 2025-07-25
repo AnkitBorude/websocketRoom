@@ -10,7 +10,8 @@
     "lint:fix": "eslint --fix",
     "prepare": "husky",
     "format":"prettier . -c",
-    "format:write":"prettier . -w"
+    "format:write":"prettier . -w",
+    "build:frontend": "tsc -p tsconfig.frontend.json"
   },
   "author": "ankit borude",
   "license": "ISC",
