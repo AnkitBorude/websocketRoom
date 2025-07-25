@@ -117,24 +117,24 @@ export class RoomManager {
         this.leaveRoom(ws);
       }
       const roomToJoin = this.chatRooms.get(roomId);
-      client.roomId = roomToJoin?.id;
-      roomToJoin?.clients.push(client);
+      if(roomToJoin)
+      {
+        client.roomId = roomToJoin.id;
+        roomToJoin.clients.push(client);
+        const JoinMessageToUser=this.messageFactory(RequstType.JOIN,`Joined to room ${roomToJoin?.name} current Online ${roomToJoin?.clients.length}`)
+        (roomToJoin.id,roomToJoin.name);
 
-      const JoinNotificationToOthers: RoomNotificationMessage = {
+        const JoinNotificationToOthers: RoomNotificationMessage = {
         type: "notify",
         message: `${client.name} has Joined the Room`,
         notificationOf: RequstType.JOIN,
-      };
-      const JoinNotificationToUser: RoomNotificationMessage = {
-        type: "notify",
-        message: `Joined to room ${roomToJoin?.name} current Online ${roomToJoin?.clients.length}`,
-        notificationOf: RequstType.JOIN,
-      };
-
-      client.ws.send(JSON.stringify(JoinNotificationToUser));
+        };
+      
+      client.ws.send(JSON.stringify(JoinMessageToUser));
       roomToJoin?.clients.forEach((client) => {
         client.ws.send(JSON.stringify(JoinNotificationToOthers));
       });
+      }     
     }
   }
 
@@ -193,6 +193,16 @@ export class RoomManager {
     client.roomId = undefined;
     client.ws.send(JSON.stringify(leftNotificationToUser));
   }
+
+  // sendMessage(ws:WebSocket,message:string)
+  // {
+  //   //STEP1:get client and check if it exists or not
+  //   //STEP2:check if the client is part of any room
+  //   //i.e has the room id
+  //   //STEP3: if the client is part of any room
+  //     //Broadcast message to all roomates
+  //   //STEP4: if the client is part of any name
+  // }
   // Overload signatures
   private messageFactory(
     request: RequstType.CREATE,

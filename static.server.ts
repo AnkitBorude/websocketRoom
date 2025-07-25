@@ -31,11 +31,12 @@ export const server = http.createServer((req, res) => {
   if (req.url === "/") {
     resourcePath = path.join(__dirname, STATIC_FILE_DIR_NAME, "index.html");
   } else {
+    if(req.url)
+    {
     resourcePath = path.join(
-      __dirname,
-      req.url ?? STATIC_FILE_DIR_NAME,
-      "notfound.html",
+      __dirname, STATIC_FILE_DIR_NAME,req.url
     );
+  }
   }
 
   const fileExtension = path.extname(resourcePath);
@@ -60,4 +61,8 @@ export const server = http.createServer((req, res) => {
       res.end(`Server Error: ${error.message}`);
     }
   });
+});
+
+server.listen(3000, () => {
+  console.log("Server Listening on port " + 3000);
 });
