@@ -53,7 +53,7 @@
   <!---Chat message Box-->
 
   <div class="flex flex-col  ps-4 p-2 w-full gap-2 bg-white/10 backdrop-blur-md border border-white/20 p-6 shadow-lg h-full " id="messageBox">
-    <div class="flex flex-col w-full max-w-[450px] leading-1.5 ps-2 p-1 border-1 border-white bg-transparent rounded-e-xl rounded-es-xl">
+    <div class="flex flex-col w-full max-w-[450px] leading-1.5 ps-2 p-1 border-2 border-white/20 bg-transparent rounded-e-xl rounded-es-xl">
       <div class="flex items-center space-x-2">
          <span class="text-sm font-semibold text-white">Bonnie Green</span>
          <span class="text-sm font-normal text-gray-200">11:46</span>
@@ -61,11 +61,12 @@
       <p class="text-sm font-normal text-white">That's awesome. I think our users will really appreciate the improvements.</p>
    </div>
 
-   <div class="p-2 text-sm text-blue-800 rounded-lg text-white bg-white/15 backdrop-blur-lg border border-white/20 self-center font-semibold" role="alert">
+   <div class="p-2 text-sm rounded-lg text-white bg-white/10 backdrop-blur-lg border border-white/20 self-center font-semibold" role="alert">
   <span class="font-bold">Info alert!</span> Change a few things up and try submitting again.
+   <span class="text-sm font-normal text-gray-300 pe-2">11:46</span>
   </div>
 
-   <div class="flex flex-col w-full max-w-[400px] ps-2 p-1 leading-1.5  border-1 border-white bg-transparent rounded-e-xl rounded-es-xl self-end">
+   <div class="flex flex-col w-full max-w-[400px] ps-2 p-1 leading-1.5  border-2 border-white/20 bg-transparent rounded-s-xl  rounded-ee-xl self-end">
       <p class="text-sm font-normal text-white">That's awesome. I think our users will really appreciate the improvements.</p>
        <span class="text-sm font-normal text-gray-200 self-end pe-2">11:46</span>
    </div>
@@ -88,26 +89,29 @@
 <div class="max-w-[20%] border-1 border-white rounded-md p-2 flex flex-col gap-2 items-center 
 bg-white/10 backdrop-blur-md border border-white/20">
 
-    <p class="text-sm font-bold lg:text-md sm:px-12 xl:px-48 text-white w-full flex-grow-1">Chat Room Details </p>
+    <p class="text-sm font-bold">Chat Room Details </p>
      <div class="gap-4 p-2 flex flex-col justify-center items-center w-full"> 
       <div class="p-2 flex flex-col gap-2 items-center">
     <div class="flex flex-col items-center"> 
       <label class="block text-md mb-1 font-medium text-white">Your Current Username :</label>
-      <span class="block text-md font-bold text-white ">Ankit Borude</span>
+      <span class="block text-md font-bold text-white " id="username">Ankit Borude</span>
+       <button type="button" class="text-white bg-gradient-to-br from-purple-600 to-yellow-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-800
+      font-bold rounded-lg text-sm px-2 py-2 text-center mt-2 hover:cursor-pointer">Update Username</button>
     </div>
+
     <div class="flex flex-col items-center"> 
       <label class="block text-md mb-1 font-medium text-white">Your Current Room Id:</label>
-      <span class="block text-md font-bold text-white ">801</span>
+      <span class="block text-md font-bold text-white " id="roomId">801</span>
     </div>
 
     <div class="flex flex-col items-center"> 
       <label class="block text-md mb-1 font-medium text-white">Your Current Room Name</label>
-      <span class="block text-md font-bold text-white ">Chat Room</span>
+      <span class="block text-md font-bold text-white " id="roomName">Chat Room</span>
     </div>
 
     <div class="flex flex-col items-center"> 
       <label class="block text-md mb-1 font-medium text-white">Current Active Members</label>
-      <span class="block text-md font-bold text-white ">2</span>
+      <span class="block text-md font-bold text-white " id="activeMember">2</span>
     </div>
 
      <button type="button" class="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-blue-800
@@ -117,49 +121,7 @@ bg-white/10 backdrop-blur-md border border-white/20">
   
 </div>
 </div>
-  <script>
-    const hostname=window.location.host;
-
-    document.getElementById('hostname').innerText=hostname;
-    const socket = new WebSocket('ws://'+hostname);
-
-    socket.onopen = () => console.log('Connected to server');
-
-    socket.onmessage = (event) => {
-      appendMessage(event.data,false);
-    };
-
-    socket.onclose = () => console.log('Connection closed');
-    socket.onerror = (err) => console.error('Error:', err);
-
-    function send() {
-      const input = document.getElementById('msg');
-      dataTOSend=input.value.toString().trim();
-      socket.send(dataTOSend);
-      appendMessage(dataTOSend,true);
-      input.value = '';
-    }
-
-    function clear()
-    {
-      document.getElementById('messages').innerHTML="";
-    }
-
-    function appendMessage(msg,isSent)
-    {
-      const h3=document.createElement('p');
-      if(isSent)
-    {
-      h3.style.fontWeight='bold';
-      h3.textContent="SENT : " +msg;
-    }else
-    {
-      h3.style.fontWeight='normal';
-      h3.textContent='RECIEVED: '+msg;
-    }
-
-    document.getElementById('messages').appendChild(h3);
-    }
+  <script type="module" src="/js/app.js"></script>
   </script>
 </body>
 </dl>
