@@ -19,7 +19,7 @@
 
       <div> 
     <label for="number-input" class="block mb-2 text-sm font-medium text-white">Enter Room Id to join</label>
-    <input type="number" id="join-roomId-input" aria-describedby="helper-text-explanation" class="bg-transparent border border-white text-white text-sm
+    <input type="number" id="join-roomId-input" min="1" max="1000" aria-describedby="helper-text-explanation" class="bg-transparent border border-white text-white text-sm
      rounded-md focus:ring-blue-500 focus:border-white focus:border-2 block w-full p-2 placeholder-gray-300" placeholder="Enter room id" required />
     </div>
 
@@ -36,7 +36,7 @@
     <div> 
     <label for="number-input" class="block mb-2 text-sm font-medium text-white">Create New Room</label>
     <input type="text" id="create-room-input" aria-describedby="helper-text-explanation" class="bg-transparent border-1 border-white text-white text-sm
-     rounded-md focus:ring-blue-500 focus:border-white focus:border-2 block w-full p-2 placeholder-gray-300" placeholder="Enter room name" required />
+     rounded-md focus:ring-blue-500 focus:border-white focus:border-2 block w-full p-2 placeholder-gray-300" placeholder="Room name Max: 14 Char " required />
     </div>
 
     <button type="button" class="text-white bg-gradient-to-r from-cyan-500 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:outline-none focus:ring-cyan-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mt-2

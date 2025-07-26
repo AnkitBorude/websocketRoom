@@ -13,22 +13,22 @@ export enum RequstType {
 
 export interface BaseMessage{
     type:RequstType,
-    message:string
+    message?:string
 }
 
 export interface CreateMessage extends BaseMessage{
   type: RequstType.CREATE;
-  message: string;
+  message?: string;
   roomName: string;
-  roomId: number;
+  roomId?: number;
 };
 
 export interface JoinMessage extends BaseMessage {
   type: RequstType.JOIN;
-  message: string;
+  message?: string;
   roomId: number;
   roomName?:string;
-  username: string;
+  username?: string;
   activeUsers?:number
 };
 
@@ -54,7 +54,7 @@ export interface ConnectionMessage extends BaseMessage {
 export interface LeaveMessage extends BaseMessage{
   type: RequstType.LEAVE;
   roomId: number;
-  message: string;
+  message?: string;
 };
 
 export interface RoomNotificationMessage extends BaseMessage {

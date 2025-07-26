@@ -1,8 +1,9 @@
+// import { joinRoom } from "./socket.client.js";
+// import { createRoom } from "./socket.client.js";
 import { currentState,oldState,incomingMessageEvent } from "./state.js";
 import { ButtonHandlerMap, ConnectionMessage, CreateMessage, ElementType, InputBoxTypes, JoinMessage, LeaveMessage, RenameMessage, RequstType, RoomNotificationMessage } from "./types.client.js";
 
 const MESSAGE_BOX= document.getElementById('messageBox');
-
 
 const elementMap: Record<ElementType, HTMLElement | null> = {
   roomId: document.getElementById("roomId"),
@@ -12,10 +13,10 @@ const elementMap: Record<ElementType, HTMLElement | null> = {
   userId:document.getElementById("userId")
 };
 
-const InputelementMap: Record<InputBoxTypes, HTMLElement | null> = {
-    JOIN_ROOM_INPUT:document.getElementById('join-roomId-input'),
-    CREATE_ROOM_INPUT: document.getElementById('create-room-input'),
-    MESSAGE_INPUT: document.getElementById('message-input'),
+const InputelementMap: Record<InputBoxTypes, HTMLInputElement | null> = {
+    JOIN_ROOM_INPUT:document.getElementById('join-roomId-input') as HTMLInputElement,
+    CREATE_ROOM_INPUT: document.getElementById('create-room-input') as HTMLInputElement,
+    MESSAGE_INPUT: document.getElementById('message-input') as HTMLInputElement,
 };
 const buttonHandlerMap: ButtonHandlerMap = {
   joinRoomBtn: JoinRoombtnHandler,
@@ -135,23 +136,70 @@ export function updateRoomDetailsElementValue(type: ElementType, value: string |
 }
 
 export function JoinRoombtnHandler() {
-  console.log("Join room button clicked");
+  const roomId:string | undefined =InputelementMap.JOIN_ROOM_INPUT?.value;
+  if(!roomId)
+  {
+    alert("Please enter a room Id")
+    return;
+  }
+  const sRoomId=+sanitizeNumber(roomId);
+  if(sRoomId<=0 || sRoomId>=1000)
+  {
+    alert("Room Id should be between 1 to 1000");
+    return;
+  }
+  const payload:JoinMessage={
+    type:RequstType.JOIN,
+    roomId:sRoomId
+  }
+  
+  console.log(payload);
 }
 
 export function CreateRoombtnHandler() {
   console.log("Create room button clicked");
+  const roomName=InputelementMap!.CREATE_ROOM_INPUT?.value;
+  if(!roomName)
+  {
+    alert("Please enter a Room Name")
+    return;
+  }
+  const sRoomName=sanitizeText(roomName);
+  if(sRoomName.length>16)
+  {
+      alert("Room name cannot be greater than 16")
+      return;
+  }
+  const payload:CreateMessage={
+    type:RequstType.CREATE,
+    roomName:sRoomName
+  }
+  console.log(payload);
 }
 
 export function SendMessagebtnHandler() {
   console.log("Send message button clicked");
 }
 
+
 export function RenamebtnHandler() {
   console.log("Rename/Update Username button clicked");
 }
 
 export function LeaveRoombtnHandler() {
-  console.log("Leave room button clicked");
+  const roomId=currentState.get('roomId');
+  if(!roomId || +roomId<=0)
+  {
+    alert("You are not a part of any room")
+    return;
+  }
+  const sRoomId=+sanitizeNumber(roomId+"");
+
+  const payload:LeaveMessage={
+    type:RequstType.LEAVE,
+    roomId:sRoomId
+  }
+  console.log(payload);
 }
 
 
@@ -176,13 +224,12 @@ export function initializeState()
     currentState.set('userId',0);
     runChangeDetectioninState();
 }
+incomingMessageEvent.addEventListener(RequstType.CREATE,withCustomDetail<CreateMessage>((message)=>{
+  appendOwnMessageBubble(message.message ?? "");
+}));
 
-incomingMessageEvent.on(RequstType.CREATE,(message:CreateMessage)=>{
-  appendOwnMessageBubble(message.message);
-});
-
-incomingMessageEvent.on(RequstType.NOTIFY,(message:RoomNotificationMessage)=>{
-  appendOwnMessageBubble(message.message);
+incomingMessageEvent.addEventListener(RequstType.NOTIFY,withCustomDetail<RoomNotificationMessage>((message)=>{
+   appendOwnMessageBubble(message.message);
   if(message.notificationOf==RequstType.JOIN)
   {
     currentState.set('activeMember',+(currentState.get('activeMember') ?? 0 )+1);
@@ -193,37 +240,36 @@ incomingMessageEvent.on(RequstType.NOTIFY,(message:RoomNotificationMessage)=>{
     currentState.set('activeMember',+(currentState.get('activeMember') ?? 0 )-1);
     runChangeDetectioninState();
   }
+}));
 
-})
-
-incomingMessageEvent.on(RequstType.CONNECT,(message:ConnectionMessage)=>{
-  appendOwnMessageBubble(message.message);
+incomingMessageEvent.addEventListener(RequstType.CONNECT,withCustomDetail<ConnectionMessage>((message)=>{
+   appendOwnMessageBubble(message.message);
   currentState.set('username',message.username);
   currentState.set('userId',message.id);
   runChangeDetectioninState();
-})
+}));
 
-incomingMessageEvent.on(RequstType.JOIN,(message:JoinMessage)=>{
-  appendOwnMessageBubble(message.message);
+incomingMessageEvent.addEventListener(RequstType.JOIN,withCustomDetail<JoinMessage>((message)=>{
+     appendOwnMessageBubble(message.message ?? "");
   currentState.set('activeMember',message.activeUsers ?? 0);
   currentState.set('roomId',message.roomId);
   currentState.set('roomName',message.roomName ?? "NA");
   runChangeDetectioninState();
-});
+}));
 
-incomingMessageEvent.on(RequstType.RENAME,(message:RenameMessage)=>{
-  appendOwnMessageBubble(message.message);
+incomingMessageEvent.addEventListener(RequstType.RENAME,withCustomDetail<RenameMessage>((message)=>{
+     appendOwnMessageBubble(message.message);
   currentState.set('username',message.username);
   runChangeDetectioninState();
-});
+}));
 
-incomingMessageEvent.on(RequstType.LEAVE,(message:LeaveMessage)=>{
-  appendOwnMessageBubble(message.message);
+incomingMessageEvent.addEventListener(RequstType.LEAVE,withCustomDetail<LeaveMessage>((message)=>{
+  appendOwnMessageBubble(message.message ?? "");
   currentState.set('roomId',0);
   currentState.set('roomName','Not Joined any Room Yet');
   currentState.set('activeMember',0);
   runChangeDetectioninState();
-});
+}));
 function runChangeDetectioninState()
 {
   currentState.forEach((value,key)=>{
@@ -233,4 +279,22 @@ function runChangeDetectioninState()
       updateRoomDetailsElementValue(key,value);
     }
   })
+}
+
+function withCustomDetail<T>(callback: (detail: T) => void): (event: Event) => void {
+  return (event: Event) => {
+    const customEvent = event as CustomEvent<T>;
+    callback(customEvent.detail);
+  };
+}
+
+
+function sanitizeText(input: string): string {
+  const temp = document.createElement("div");
+  temp.textContent = input;
+  return temp.innerHTML.trim(); // Escaped HTML (prevents XSS)
+}
+
+function sanitizeNumber(input: string): string {
+  return input.replace(/[^\d]/g, "");
 }

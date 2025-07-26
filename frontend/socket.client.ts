@@ -117,5 +117,5 @@ function incomingMessageHandler(message:string)
       console.error("Invalid JSON STRING"+error);
       return;
     }
-    incomingMessageEvent.emit(messageObject.type,messageObject);
+    incomingMessageEvent.dispatchEvent(new CustomEvent<BaseMessage>(messageObject.type,{detail:messageObject}));
 }
