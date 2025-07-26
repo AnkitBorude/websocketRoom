@@ -1,12 +1,15 @@
-import { ButtonHandlerMap, ElementType, InputBoxTypes } from "./types.client";
+import { currentState,oldState,incomingMessageEvent } from "./state.js";
+import { ButtonHandlerMap, ConnectionMessage, CreateMessage, ElementType, InputBoxTypes, JoinMessage, LeaveMessage, RenameMessage, RequstType, RoomNotificationMessage } from "./types.client.js";
 
 const MESSAGE_BOX= document.getElementById('messageBox');
+
 
 const elementMap: Record<ElementType, HTMLElement | null> = {
   roomId: document.getElementById("roomId"),
   roomName: document.getElementById("roomName"),
   activeMember: document.getElementById("activeMember"),
   username: document.getElementById("username"),
+  userId:document.getElementById("userId")
 };
 
 const InputelementMap: Record<InputBoxTypes, HTMLElement | null> = {
@@ -106,14 +109,16 @@ export function appendInfoAlert(message: string) {
   messageBox.appendChild(alertDiv);
 }
 
-export function updateRoomDetailsElementValue(type: ElementType, value: string) {
+export function updateRoomDetailsElementValue(type: ElementType, value: string | number) {
   const el = elementMap[type];
   if (!el) {
     console.warn(`[updateElementValue] Element not found for type: ${type}`);
     return;
   }
+  //update state 
+  currentState.set(type,value);
 
-  el.textContent = value;
+  el.textContent = value+"";
 
   // Animate using Tailwind utility classes
   el.classList.add("transition", "duration-300", "ease-in-out", "scale-110", "opacity-0");
@@ -159,4 +164,73 @@ export function attachButtonHandlers() {
       console.warn(`[attachButtonHandlers] Button with id '${id}' not found.`);
     }
   });
+}
+
+
+export function initializeState()
+{
+    currentState.set('activeMember',0);
+    currentState.set('roomId',0);
+    currentState.set('roomName','Not Joined any Room Yet');
+    currentState.set('username','Ananymous');
+    currentState.set('userId',0);
+    runChangeDetectioninState();
+}
+
+incomingMessageEvent.on(RequstType.CREATE,(message:CreateMessage)=>{
+  appendOwnMessageBubble(message.message);
+});
+
+incomingMessageEvent.on(RequstType.NOTIFY,(message:RoomNotificationMessage)=>{
+  appendOwnMessageBubble(message.message);
+  if(message.notificationOf==RequstType.JOIN)
+  {
+    currentState.set('activeMember',+(currentState.get('activeMember') ?? 0 )+1);
+    runChangeDetectioninState();
+  }
+  else if(message.notificationOf==RequstType.LEAVE)
+  {
+    currentState.set('activeMember',+(currentState.get('activeMember') ?? 0 )-1);
+    runChangeDetectioninState();
+  }
+
+})
+
+incomingMessageEvent.on(RequstType.CONNECT,(message:ConnectionMessage)=>{
+  appendOwnMessageBubble(message.message);
+  currentState.set('username',message.username);
+  currentState.set('userId',message.id);
+  runChangeDetectioninState();
+})
+
+incomingMessageEvent.on(RequstType.JOIN,(message:JoinMessage)=>{
+  appendOwnMessageBubble(message.message);
+  currentState.set('activeMember',message.activeUsers ?? 0);
+  currentState.set('roomId',message.roomId);
+  currentState.set('roomName',message.roomName ?? "NA");
+  runChangeDetectioninState();
+});
+
+incomingMessageEvent.on(RequstType.RENAME,(message:RenameMessage)=>{
+  appendOwnMessageBubble(message.message);
+  currentState.set('username',message.username);
+  runChangeDetectioninState();
+});
+
+incomingMessageEvent.on(RequstType.LEAVE,(message:LeaveMessage)=>{
+  appendOwnMessageBubble(message.message);
+  currentState.set('roomId',0);
+  currentState.set('roomName','Not Joined any Room Yet');
+  currentState.set('activeMember',0);
+  runChangeDetectioninState();
+});
+function runChangeDetectioninState()
+{
+  currentState.forEach((value,key)=>{
+    if(oldState.get(key)!==value || !oldState.get(key))
+    {
+      oldState.set(key,value);
+      updateRoomDetailsElementValue(key,value);
+    }
+  })
 }

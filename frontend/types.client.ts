@@ -1,4 +1,4 @@
-export type ElementType = "roomId" | "roomName" | "activeMember" | "username";
+export type ElementType = "roomId" | "roomName" | "activeMember" | "username" | "userId";
 export type InputBoxTypes='JOIN_ROOM_INPUT' | 'CREATE_ROOM_INPUT' | 'MESSAGE_INPUT';
 
 export enum RequstType {
@@ -27,7 +27,9 @@ export interface JoinMessage extends BaseMessage {
   type: RequstType.JOIN;
   message: string;
   roomId: number;
+  roomName?:string;
   username: string;
+  activeUsers?:number
 };
 
 export interface ChatMessage extends BaseMessage {

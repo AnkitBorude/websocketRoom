@@ -1,9 +1,16 @@
-import { attachButtonHandlers, bindInputBoxes } from "./dom.client.js";
-import { connectWebSocket } from "./socket.client.js";
+import { attachButtonHandlers, bindInputBoxes,initializeState } from "./dom.client.js";
+// import { connectWebSocket } from "./socket.client.js";
 
-const hostname=window.location.host;
-connectWebSocket(hostname);
-bindInputBoxes();
+// const hostname=window.location.host;
+//initialize state
+initializeState();
+
+//attach Handlers
 document.addEventListener("DOMContentLoaded", () => {
   attachButtonHandlers();
+  bindInputBoxes();
 });
+
+
+// //connect with websocket 
+// connectWebSocket(hostname);

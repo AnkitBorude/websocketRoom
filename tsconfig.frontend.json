@@ -6,7 +6,8 @@
     "strict": true,
     "moduleResolution": "node",       // Optional: helps with imports
     "allowJs": false,
-    "removeComments": true
+    "removeComments": true,
+    "allowSyntheticDefaultImports": true
   },
   "include": ["frontend/**/*.ts"]
 }
