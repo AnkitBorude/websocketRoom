@@ -1,12 +1,34 @@
+import { ButtonHandlerMap, ElementType, InputBoxTypes } from "./types.client";
 
-type ElementType = "roomId" | "roomName" | "activeMember" | "username";
+const MESSAGE_BOX= document.getElementById('messageBox');
+
 const elementMap: Record<ElementType, HTMLElement | null> = {
   roomId: document.getElementById("roomId"),
   roomName: document.getElementById("roomName"),
   activeMember: document.getElementById("activeMember"),
   username: document.getElementById("username"),
 };
-const MESSAGE_BOX= document.getElementById('messageBox');
+
+const InputelementMap: Record<InputBoxTypes, HTMLElement | null> = {
+    JOIN_ROOM_INPUT:document.getElementById('join-roomId-input'),
+    CREATE_ROOM_INPUT: document.getElementById('create-room-input'),
+    MESSAGE_INPUT: document.getElementById('message-input'),
+};
+const buttonHandlerMap: ButtonHandlerMap = {
+  joinRoomBtn: JoinRoombtnHandler,
+  createRoomBtn: CreateRoombtnHandler,
+  sendMessageBtn: SendMessagebtnHandler,
+  updateUsernamebtn: RenamebtnHandler,
+  leaveRoomBtn: LeaveRoombtnHandler,
+};
+
+export function bindInputBoxes()
+{
+  const isAllBinded=Object.values(InputelementMap).every((element)=>{
+    return element ? true: false;});
+
+  if(!isAllBinded ){console.error("Problem with inputBox Binding check correct ids is assigned")}
+}
 
 
 export function appendRecievedMessageBubble(senderName: string, messageText: string) {
@@ -84,7 +106,7 @@ export function appendInfoAlert(message: string) {
   messageBox.appendChild(alertDiv);
 }
 
-export function updateElementValue(type: ElementType, value: string) {
+export function updateRoomDetailsElementValue(type: ElementType, value: string) {
   const el = elementMap[type];
   if (!el) {
     console.warn(`[updateElementValue] Element not found for type: ${type}`);
@@ -105,4 +127,36 @@ export function updateElementValue(type: ElementType, value: string) {
   setTimeout(() => {
     el.classList.remove("scale-110");
   }, 300);
+}
+
+export function JoinRoombtnHandler() {
+  console.log("Join room button clicked");
+}
+
+export function CreateRoombtnHandler() {
+  console.log("Create room button clicked");
+}
+
+export function SendMessagebtnHandler() {
+  console.log("Send message button clicked");
+}
+
+export function RenamebtnHandler() {
+  console.log("Rename/Update Username button clicked");
+}
+
+export function LeaveRoombtnHandler() {
+  console.log("Leave room button clicked");
+}
+
+
+export function attachButtonHandlers() {
+  Object.entries(buttonHandlerMap).forEach(([id, handler]) => {
+    const btn = document.getElementById(id);
+    if (btn) {
+      btn.addEventListener("click", handler);
+    } else {
+      console.warn(`[attachButtonHandlers] Button with id '${id}' not found.`);
+    }
+  });
 }

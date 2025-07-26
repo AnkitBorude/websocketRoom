@@ -1,5 +1,15 @@
-import { RequstType } from "./request.enum";
+export type ElementType = "roomId" | "roomName" | "activeMember" | "username";
+export type InputBoxTypes='JOIN_ROOM_INPUT' | 'CREATE_ROOM_INPUT' | 'MESSAGE_INPUT';
 
+export enum RequstType {
+  CREATE = "create",
+  JOIN = "join",
+  MESSAGE = "message",
+  RENAME = "rename",
+  CONNECT = "connect",
+  LEAVE = "leave",
+  NOTIFY="notify"
+}
 
 export interface BaseMessage{
     type:RequstType,
@@ -50,3 +60,9 @@ export interface RoomNotificationMessage extends BaseMessage {
   message: string;
   notificationOf: RequstType.JOIN | RequstType.MESSAGE | RequstType.LEAVE;
 };
+
+
+export type ButtonHandlerMap = {
+  [key: string]: () => void;
+};
+
