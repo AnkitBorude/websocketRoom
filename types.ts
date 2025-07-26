@@ -17,8 +17,11 @@ export interface JoinMessage extends BaseMessage {
   type: RequstType.JOIN;
   message: string;
   roomId: number;
+  roomName:string;
   username: string;
+  activeUsers:number
 };
+
 
 export interface ChatMessage extends BaseMessage {
   type: RequstType.MESSAGE;

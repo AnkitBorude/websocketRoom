@@ -64,11 +64,11 @@ export class RoomManager {
     this.roomIdCounter++;
     const room: Room = {
       id: this.roomIdCounter,
-      clients: [client],
+      clients: [],
       name: name,
     };
-    //setting the clients roomId
-    client.roomId = this.roomIdCounter;
+    // //setting the clients roomId
+    // client.roomId = this.roomIdCounter;
 
     this.chatRooms.set(this.roomIdCounter, room);
     const response = this.messageFactory(
@@ -76,6 +76,7 @@ export class RoomManager {
       "Room Created Successfully your are part of your room",
     )(name, this.roomIdCounter);
     ws.send(JSON.stringify(response));
+    this.joinRoom(ws,this.roomIdCounter);
   }
 
   renameUser(ws: WebSocket, newUsername: string) {
@@ -106,7 +107,7 @@ export class RoomManager {
         const response = this.messageFactory(
           RequstType.JOIN,
           "Room NOT Found 404",
-        )(roomId, client.name);
+        )(roomId, client.name,0,'Not 404 Found');
         ws.send(JSON.stringify(response));
         return;
       }
@@ -122,17 +123,19 @@ export class RoomManager {
         client.roomId = roomToJoin.id;
         roomToJoin.clients.push(client);
         const JoinMessageToUser=this.messageFactory(RequstType.JOIN,`Joined to room ${roomToJoin?.name} current Online ${roomToJoin?.clients.length}`)
-        (roomToJoin.id,roomToJoin.name);
+        (roomToJoin.id,roomToJoin.name,roomToJoin?.clients.length,roomToJoin?.name);
 
         const JoinNotificationToOthers: RoomNotificationMessage = {
-        type: "notify",
+        type:RequstType.NOTIFY,
         message: `${client.name} has Joined the Room`,
         notificationOf: RequstType.JOIN,
         };
       
       client.ws.send(JSON.stringify(JoinMessageToUser));
-      roomToJoin?.clients.forEach((client) => {
-        client.ws.send(JSON.stringify(JoinNotificationToOthers));
+      roomToJoin?.clients.forEach((eclient) => {
+        if(eclient!=client){
+        eclient.ws.send(JSON.stringify(JoinNotificationToOthers));
+        }
       });
       }     
     }
@@ -173,7 +176,7 @@ export class RoomManager {
         console.log("Deleted Empty if any rooms" + idTodelete);
       } else {
         const LeaveNotificationToOthers: RoomNotificationMessage = {
-          type: "notify",
+          type: RequstType.NOTIFY,
           message: `${client.name} has left the Room`,
           notificationOf: RequstType.LEAVE,
         };
@@ -211,7 +214,7 @@ export class RoomManager {
   private messageFactory(
     request: RequstType.JOIN,
     message: string,
-  ): (roomId: number, username: string) => JoinMessage;
+  ): (roomId: number, username: string,activeUsers:number,roomName:string) => JoinMessage;
   private messageFactory(
     request: RequstType.MESSAGE,
     message: string,
@@ -237,11 +240,13 @@ export class RoomManager {
           message,
         });
       case RequstType.JOIN:
-        return (roomId: number, username: string): JoinMessage => ({
+        return (roomId: number, username: string,activeUsers:number,roomName:string): JoinMessage => ({
           type: request,
           roomId,
           username,
           message,
+          activeUsers,
+          roomName
         });
       case RequstType.MESSAGE:
         return (roomId: number, message: string): ChatMessage => ({

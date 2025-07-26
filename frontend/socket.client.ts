@@ -1,5 +1,5 @@
 
-import { appendOwnMessageBubble} from "./dom.client.js";
+import { appendInfoAlert} from "./dom.client.js";
 import { BaseMessage, CreateMessage, JoinMessage, LeaveMessage, RenameMessage} from "./types.client.js";
 import { incomingMessageEvent } from "./state.js";
 
@@ -36,14 +36,16 @@ export function createRoom(payload:CreateMessage)
     {
       //Send message to server
       try{
-      socket.send(JSON.stringify(JSON.stringify(payload)));
+      socket.send(JSON.stringify(payload));
       }catch(error)
       {
-        appendOwnMessageBubble("Problem while creating room client side error");
+        appendInfoAlert("Problem while creating room client side error");
         console.log(error);
       }
+      return;
     }
-    appendOwnMessageBubble("Problem during connection : SOCKET CLOSED");
+
+    appendInfoAlert("Problem during connection : SOCKET CLOSED");
    
 }
 
@@ -53,14 +55,15 @@ export function renameUser(payload:RenameMessage)
     {
       //Send message to server
       try{
-      socket.send(JSON.stringify(JSON.stringify(payload)));
+      socket.send(JSON.stringify(payload));
       }catch(error)
       {
-        appendOwnMessageBubble("Problem while modifying usernmae : client side error");
+        appendInfoAlert("Problem while modifying usernmae : client side error");
         console.log(error);
       }
+      return;
     }
-    appendOwnMessageBubble("Problem during connection : SOCKET CLOSED");
+    appendInfoAlert("Problem during connection : SOCKET CLOSED");
 }
 
 export function joinRoom(payload:JoinMessage)
@@ -69,14 +72,15 @@ export function joinRoom(payload:JoinMessage)
     {
       //Send message to server
       try{
-      socket.send(JSON.stringify(JSON.stringify(payload)));
+      socket.send(JSON.stringify(payload));
       }catch(error)
       {
-        appendOwnMessageBubble("Problem while joining room client side error");
+        appendInfoAlert("Problem while joining room client side error");
         console.log(error);
       }
+      return;
     }
-    appendOwnMessageBubble("Problem during connection : SOCKET CLOSED");
+    appendInfoAlert("Problem during connection : SOCKET CLOSED");
 }
 
 export function leaveRoom(payload:LeaveMessage)
@@ -85,14 +89,15 @@ export function leaveRoom(payload:LeaveMessage)
     {
       //Send message to server
       try{
-      socket.send(JSON.stringify(JSON.stringify(payload)));
+      socket.send(JSON.stringify(payload));
       }catch(error)
       {
-        appendOwnMessageBubble("Problem while leaving the room client side error");
+        appendInfoAlert("Problem while leaving the room client side error");
         console.log(error);
       }
+      return;
     }
-    appendOwnMessageBubble("Problem during connection : SOCKET CLOSED");
+    appendInfoAlert("Problem during connection : SOCKET CLOSED");
 }
 
 function isSocketOpen():boolean

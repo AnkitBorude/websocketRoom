@@ -1,5 +1,5 @@
-// import { joinRoom } from "./socket.client.js";
-// import { createRoom } from "./socket.client.js";
+import { createRoom, leaveRoom, renameUser } from "./socket.client.js";
+import { joinRoom } from "./socket.client.js";
 import { currentState,oldState,incomingMessageEvent } from "./state.js";
 import { ButtonHandlerMap, ConnectionMessage, CreateMessage, ElementType, InputBoxTypes, JoinMessage, LeaveMessage, RenameMessage, RequstType, RoomNotificationMessage } from "./types.client.js";
 
@@ -153,7 +153,7 @@ export function JoinRoombtnHandler() {
     type:RequstType.JOIN,
     roomId:sRoomId
   }
-  
+  joinRoom(payload);
   console.log(payload);
 }
 
@@ -175,6 +175,7 @@ export function CreateRoombtnHandler() {
     type:RequstType.CREATE,
     roomName:sRoomName
   }
+  createRoom(payload);
   console.log(payload);
 }
 
@@ -220,6 +221,7 @@ export function RenamebtnHandler() {
                       type:RequstType.RENAME,
                       username:susername
                     }
+                    renameUser(payload);
                   console.log(payload);
             }
         }
@@ -250,6 +252,7 @@ export function LeaveRoombtnHandler() {
     type:RequstType.LEAVE,
     roomId:sRoomId
   }
+  leaveRoom(payload);
   console.log(payload);
 }
 
@@ -276,11 +279,14 @@ export function initializeState()
     runChangeDetectioninState();
 }
 incomingMessageEvent.addEventListener(RequstType.CREATE,withCustomDetail<CreateMessage>((message)=>{
-  appendOwnMessageBubble(message.message ?? "");
+  appendInfoAlert(message.message ?? "");
+  currentState.set('roomId',message.roomId ?? 0);
+  currentState.set('roomName',message.roomName);
+  runChangeDetectioninState();
 }));
 
 incomingMessageEvent.addEventListener(RequstType.NOTIFY,withCustomDetail<RoomNotificationMessage>((message)=>{
-   appendOwnMessageBubble(message.message);
+   appendInfoAlert(message.message);
   if(message.notificationOf==RequstType.JOIN)
   {
     currentState.set('activeMember',+(currentState.get('activeMember') ?? 0 )+1);
@@ -294,14 +300,14 @@ incomingMessageEvent.addEventListener(RequstType.NOTIFY,withCustomDetail<RoomNot
 }));
 
 incomingMessageEvent.addEventListener(RequstType.CONNECT,withCustomDetail<ConnectionMessage>((message)=>{
-   appendOwnMessageBubble(message.message);
+   appendInfoAlert(message.message);
   currentState.set('username',message.username);
   currentState.set('userId',message.id);
   runChangeDetectioninState();
 }));
 
 incomingMessageEvent.addEventListener(RequstType.JOIN,withCustomDetail<JoinMessage>((message)=>{
-     appendOwnMessageBubble(message.message ?? "");
+     appendInfoAlert(message.message ?? "");
   currentState.set('activeMember',message.activeUsers ?? 0);
   currentState.set('roomId',message.roomId);
   currentState.set('roomName',message.roomName ?? "NA");
@@ -309,13 +315,13 @@ incomingMessageEvent.addEventListener(RequstType.JOIN,withCustomDetail<JoinMessa
 }));
 
 incomingMessageEvent.addEventListener(RequstType.RENAME,withCustomDetail<RenameMessage>((message)=>{
-     appendOwnMessageBubble(message.message ?? "");
+     appendInfoAlert(message.message ?? "");
   currentState.set('username',message.username);
   runChangeDetectioninState();
 }));
 
 incomingMessageEvent.addEventListener(RequstType.LEAVE,withCustomDetail<LeaveMessage>((message)=>{
-  appendOwnMessageBubble(message.message ?? "");
+  appendInfoAlert(message.message ?? "");
   currentState.set('roomId',0);
   currentState.set('roomName','Not Joined any Room Yet');
   currentState.set('activeMember',0);
