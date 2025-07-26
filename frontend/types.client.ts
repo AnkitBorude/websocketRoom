@@ -1,5 +1,5 @@
 export type ElementType = "roomId" | "roomName" | "activeMember" | "username" | "userId";
-export type InputBoxTypes='JOIN_ROOM_INPUT' | 'CREATE_ROOM_INPUT' | 'MESSAGE_INPUT';
+export type InputBoxTypes='JOIN_ROOM_INPUT' | 'CREATE_ROOM_INPUT' | 'MESSAGE_INPUT' | 'USERNAME_INPUT';
 
 export enum RequstType {
   CREATE = "create",
@@ -41,7 +41,7 @@ export interface ChatMessage extends BaseMessage {
 export interface RenameMessage extends BaseMessage {
   type: RequstType.RENAME;
   username: string;
-  message: string;
+  message?: string;
 };
 
 export interface ConnectionMessage extends BaseMessage {

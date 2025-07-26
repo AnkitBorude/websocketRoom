@@ -4,7 +4,7 @@ import { currentState,oldState,incomingMessageEvent } from "./state.js";
 import { ButtonHandlerMap, ConnectionMessage, CreateMessage, ElementType, InputBoxTypes, JoinMessage, LeaveMessage, RenameMessage, RequstType, RoomNotificationMessage } from "./types.client.js";
 
 const MESSAGE_BOX= document.getElementById('messageBox');
-
+const USERNAME_INPUT_DIV:HTMLInputElement=document.getElementById('usernameInputDiv') as HTMLInputElement;
 const elementMap: Record<ElementType, HTMLElement | null> = {
   roomId: document.getElementById("roomId"),
   roomName: document.getElementById("roomName"),
@@ -17,6 +17,7 @@ const InputelementMap: Record<InputBoxTypes, HTMLInputElement | null> = {
     JOIN_ROOM_INPUT:document.getElementById('join-roomId-input') as HTMLInputElement,
     CREATE_ROOM_INPUT: document.getElementById('create-room-input') as HTMLInputElement,
     MESSAGE_INPUT: document.getElementById('message-input') as HTMLInputElement,
+    USERNAME_INPUT:document.getElementById('username-input') as HTMLInputElement
 };
 const buttonHandlerMap: ButtonHandlerMap = {
   joinRoomBtn: JoinRoombtnHandler,
@@ -184,6 +185,56 @@ export function SendMessagebtnHandler() {
 
 export function RenamebtnHandler() {
   console.log("Rename/Update Username button clicked");
+
+  const btn=document.getElementById("updateUsernamebtn");
+  console.log(btn);
+
+
+  if(btn && USERNAME_INPUT_DIV)
+  {
+      btn.classList.add('opacity-0', 'invisible');
+      btn.classList.add('hidden');
+
+      USERNAME_INPUT_DIV.classList.remove('hidden');
+      USERNAME_INPUT_DIV.classList.remove('opacity-0', 'invisible');
+      USERNAME_INPUT_DIV.classList.add('opacity-100', 'visible');
+
+      USERNAME_INPUT_DIV.focus();
+      USERNAME_INPUT_DIV.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        const userName=InputelementMap!.USERNAME_INPUT?.value;
+        if(!userName)
+        {
+          console.log("No username");
+        }
+        else
+        {
+          const susername = sanitizeText(userName);
+           if(susername.length>16)
+            {
+              alert("New Username cannot be greater than 16");
+            }
+            else
+            {
+                 const payload:RenameMessage={
+                      type:RequstType.RENAME,
+                      username:susername
+                    }
+                  console.log(payload);
+            }
+        }
+        USERNAME_INPUT_DIV.classList.add('opacity-0', 'invisible');
+        USERNAME_INPUT_DIV.classList.remove('opacity-100', 'visible');
+        USERNAME_INPUT_DIV.classList.add('hidden');
+
+        btn.classList.remove('hidden');
+        btn.classList.remove('opacity-0', 'invisible');
+        btn.classList.add('opacity-100', 'visible');
+        
+      }
+    });
+  }
+  console.log("Reached to end of fx");
 }
 
 export function LeaveRoombtnHandler() {
@@ -258,7 +309,7 @@ incomingMessageEvent.addEventListener(RequstType.JOIN,withCustomDetail<JoinMessa
 }));
 
 incomingMessageEvent.addEventListener(RequstType.RENAME,withCustomDetail<RenameMessage>((message)=>{
-     appendOwnMessageBubble(message.message);
+     appendOwnMessageBubble(message.message ?? "");
   currentState.set('username',message.username);
   runChangeDetectioninState();
 }));
