@@ -9,15 +9,17 @@
     "lint": "eslint",
     "lint:fix": "eslint --fix",
     "prepare": "husky",
-    "format":"prettier . -c",
-    "format:write":"prettier . -w",
+    "format": "prettier . -c",
+    "format:write": "prettier . -w",
     "build:frontend": "tsc -p tsconfig.frontend.json"
   },
   "author": "ankit borude",
   "license": "ISC",
   "dependencies": {
+    "@tailwindcss/cli": "^4.1.11",
     "@types/node": "^24.1.0",
     "@types/ws": "^8.18.1",
+    "tailwindcss": "^4.1.11",
     "ts-node": "^10.9.2",
     "ws": "^8.18.3"
   },
