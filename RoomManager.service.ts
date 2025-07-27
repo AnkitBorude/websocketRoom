@@ -2,6 +2,7 @@ import WebSocket from "ws";
 import { RequstType } from "./request.enum";
 import {
   ChatMessage,
+  ConnectionMessage,
   CreateMessage,
   JoinMessage,
   LeaveMessage,
@@ -32,78 +33,83 @@ export class RoomManager {
   private clients: Map<number, Client> = new Map();
   private wsToClientId = new Map<WebSocket, number>();
 
-  createClient(ws: WebSocket): Client {
+  createClient(ws: WebSocket){
     this.clientIdCounter++;
     const client = {
       id: this.clientIdCounter,
       name: "User " + this.clientIdCounter,
       ws,
     };
+
     this.clients.set(client.id, client);
     this.wsToClientId.set(ws, client.id);
 
+    const response: ConnectionMessage = {
+    id: client.id,
+    type: RequstType.CONNECT,
+    username: client.name,
+    message: "Welcome to server",
+    };
     client.ws.on("close", () => {
       this.removeClient(ws);
     });
 
-    return client;
+    ws.send(JSON.stringify(response));
   }
 
   createRoom(ws: WebSocket, name: string) {
     //create Room and ad creator client in that room
     const client = this.getClientBySocket(ws);
-    if (!client) {
-      const response = this.messageFactory(
-        RequstType.CREATE,
-        "Client not found 404",
-      )(name, -404);
-      ws.send(JSON.stringify(response));
-      return;
-    }
-
+    if(!this.isClientExists(ws,client)){return;}
     this.roomIdCounter++;
     const room: Room = {
       id: this.roomIdCounter,
       clients: [],
       name: name,
     };
-    // //setting the clients roomId
-    // client.roomId = this.roomIdCounter;
-
     this.chatRooms.set(this.roomIdCounter, room);
     const response = this.messageFactory(
       RequstType.CREATE,
-      "Room Created Successfully your are part of your room",
-    )(name, this.roomIdCounter);
+      `Room Created Successfully RoomID: ${room.id} RoomName: ${room.name}`,
+    )(name, room.id);
     ws.send(JSON.stringify(response));
-    this.joinRoom(ws,this.roomIdCounter);
+    this.joinRoom(ws,room.id);
   }
 
   renameUser(ws: WebSocket, newUsername: string) {
     const client = this.getClientBySocket(ws);
-    if (!client) {
-      const response = this.messageFactory(
-        RequstType.RENAME,
-        "Client not found 404",
-      )(newUsername);
-      ws.send(JSON.stringify(response));
-      return;
-    }
+    if(!this.isClientExists(ws,client)){return;}
+    if(!client){return;}
+
     const previousname = client.name;
     client.name = newUsername;
+
     const response = this.messageFactory(
       RequstType.RENAME,
-      `Username  from ${previousname} to ${newUsername} Changed `,
+      `Username changed successfully from ${previousname} to ${newUsername} `,
     )(newUsername);
+
     ws.send(JSON.stringify(response));
-    return;
+
+    const clientRoom=this.isPartofAroom(ws,client,false);
+
+    if(clientRoom){
+      const roomNotification=this.createClientNotificationofMessage(
+        `User ${client.id} Changed his username from ${previousname} to ${newUsername}`,
+        RequstType.RENAME
+      );
+      this.broadcastNotification(clientRoom,client,roomNotification)
+    }
   }
 
   joinRoom(ws: WebSocket, roomId: number) {
     const client = this.getClientBySocket(ws);
+    if(!this.isClientExists(ws,client)){return;}
+    if(!client){return;}
 
-    if (client) {
-      if (!this.chatRooms.has(roomId)) {
+    //check whether the passed roomId exists
+    const roomToJoin = this.chatRooms.get(roomId);
+    if (!roomToJoin) {
         const response = this.messageFactory(
           RequstType.JOIN,
           "Room NOT Found 404",
@@ -111,102 +117,83 @@ export class RoomManager {
         ws.send(JSON.stringify(response));
         return;
       }
-
-      if (client.roomId && client.roomId > this.roomIdStart) {
-        //if the client is part of any room then
-        //leave previous room
+    
+      const clientsRoom=this.isPartofAroom(ws,client,false);
+      if(clientsRoom){
         this.leaveRoom(ws);
       }
-      const roomToJoin = this.chatRooms.get(roomId);
-      if(roomToJoin)
-      {
+     
         client.roomId = roomToJoin.id;
         roomToJoin.clients.push(client);
-        const JoinMessageToUser=this.messageFactory(RequstType.JOIN,`Joined to room ${roomToJoin?.name} current Online ${roomToJoin?.clients.length}`)
-        (roomToJoin.id,roomToJoin.name,roomToJoin?.clients.length,roomToJoin?.name);
+        const JoinMessageToUser=this.messageFactory(RequstType.JOIN,`Joined room ${roomToJoin.name} current Online ${roomToJoin?.clients.length}`)
+        (roomToJoin.id,roomToJoin.name,roomToJoin.clients.length,roomToJoin.name);
 
-        const JoinNotificationToOthers: RoomNotificationMessage = {
-        type:RequstType.NOTIFY,
-        message: `${client.name} has Joined the Room`,
-        notificationOf: RequstType.JOIN,
-        };
-      
+      const JoinNotificationToOthers=this.createClientNotificationofMessage(`${client.name} has Joined the Room`,
+        RequstType.JOIN
+      )
       client.ws.send(JSON.stringify(JoinMessageToUser));
-      roomToJoin?.clients.forEach((eclient) => {
-        if(eclient!=client){
-        eclient.ws.send(JSON.stringify(JoinNotificationToOthers));
-        }
-      });
-      }     
-    }
+      this.broadcastNotification(roomToJoin,client,JoinNotificationToOthers);    
   }
 
   leaveRoom(ws: WebSocket) {
     const client = this.getClientBySocket(ws);
+    if(!this.isClientExists(ws,client)){return;}
+    if(!client){return;};
+    const currentRoom=this.isPartofAroom(ws,client);
+    if(!currentRoom){return;}
 
-    if (!client) {
-      const response = this.messageFactory(
-        RequstType.LEAVE,
-        "Client not found 404",
-      )(-404);
-      ws.send(JSON.stringify(response));
-      return;
-    }
-
-    if (!client.roomId) {
-      const response = this.messageFactory(
-        RequstType.LEAVE,
-        "Client Not a part of any room yet",
-      )(-400);
-      ws.send(JSON.stringify(response));
-      return;
-    }
-
-    const currentRoom = this.chatRooms.get(client.roomId);
-
-    if (currentRoom) {
+  
       currentRoom.clients = currentRoom.clients.filter(
         (c) => c.id !== client.id,
       );
 
       if (currentRoom.clients.length == 0) {
         //if room is empty
-        const idTodelete = currentRoom.id;
-        this.chatRooms.delete(currentRoom?.id);
-        console.log("Deleted Empty if any rooms" + idTodelete);
+        this.chatRooms.delete(currentRoom.id);
+        client.roomId=undefined;
       } else {
-        const LeaveNotificationToOthers: RoomNotificationMessage = {
-          type: RequstType.NOTIFY,
-          message: `${client.name} has left the Room`,
-          notificationOf: RequstType.LEAVE,
-        };
-        //broadcast message to all room parterner about client
-        currentRoom.clients.forEach((client) => {
-          client.ws.send(JSON.stringify(LeaveNotificationToOthers));
-        });
+        const leaveNotificationToOthers=this.createClientNotificationofMessage(`${client.name} has left the Room`,RequstType.LEAVE);
+        this.broadcastNotification(currentRoom,client,leaveNotificationToOthers);
       }
-    } else {
-      client.roomId = undefined;
-    }
 
     const leftNotificationToUser: LeaveMessage = this.messageFactory(
       RequstType.LEAVE,
       `Left the room ${currentRoom?.name}`,
-    )(currentRoom?.id ?? 404);
+    )(currentRoom.id);
+
     client.roomId = undefined;
+    
     client.ws.send(JSON.stringify(leftNotificationToUser));
   }
 
-  // sendMessage(ws:WebSocket,message:string)
-  // {
-  //   //STEP1:get client and check if it exists or not
-  //   //STEP2:check if the client is part of any room
-  //   //i.e has the room id
-  //   //STEP3: if the client is part of any room
-  //     //Broadcast message to all roomates
-  //   //STEP4: if the client is part of any name
-  // }
-  // Overload signatures
+  sendMessage(ws:WebSocket,message:string)
+  {
+    const client=this.getClientBySocket(ws);
+    if(!this.isClientExists(ws,client)){return;}
+    //just to off this f*cking eslint error of undefined client
+    if(!client){return};
+    const room=this.isPartofAroom(ws,client)
+    if(!room){return;}
+    if(room.clients.length==0)
+    {
+      //room is empty
+      const notification=this.createClientNotificationofMessage('Room is empty please let other to join to send message',RequstType.MESSAGE);
+      ws.send(notification);
+      return;
+    }
+
+    const messageTobeSent=this.messageFactory(RequstType.MESSAGE,message.trim())(room.id);
+    room.clients.forEach((otherClient)=>{
+      if(client!=otherClient)
+      {
+       otherClient.ws.send(JSON.stringify(messageTobeSent));
+      }
+    })
+    
+    const successNotificationToClient=this.createClientNotificationofMessage("Message Sent Successfully",RequstType.MESSAGE);
+    ws.send(successNotificationToClient);
+  }
+  // Overloade signatures
   private messageFactory(
     request: RequstType.CREATE,
     message: string,
@@ -218,7 +205,7 @@ export class RoomManager {
   private messageFactory(
     request: RequstType.MESSAGE,
     message: string,
-  ): (roomId: number, message: string) => ChatMessage;
+  ): (roomId: number) => ChatMessage;
   private messageFactory(
     request: RequstType.RENAME,
     message: string,
@@ -249,10 +236,10 @@ export class RoomManager {
           roomName
         });
       case RequstType.MESSAGE:
-        return (roomId: number, message: string): ChatMessage => ({
+        return (roomId: number): ChatMessage => ({
           type: request,
           roomId,
-          message,
+          message
         });
       case RequstType.RENAME:
         return (username: string): RenameMessage => ({
@@ -288,5 +275,62 @@ export class RoomManager {
   private getClientBySocket(ws: WebSocket): Client | undefined {
     const clientId = this.wsToClientId.get(ws);
     return clientId !== undefined ? this.clients.get(clientId) : undefined;
+  }
+
+  private isClientExists(ws:WebSocket,client:Client | undefined)
+  {
+   if (!client) {
+      const response = this.messageFactory(
+        RequstType.LEAVE,
+        "Client not found 404",
+      )(404);
+      ws.send(JSON.stringify(response));
+      return false;
+    }
+    return true;
+  }
+
+  private isPartofAroom(ws:WebSocket,client:Client,notifyClient:boolean=true)
+  {
+    if(client.roomId)
+    {
+      //check if that room exists or not
+      const room=this.chatRooms.get(client.roomId);
+      if(room)
+      {
+        //roomExists
+        //verify if the client is present in that room or not
+        if(room?.clients.includes(client)){
+          //client exists in room too
+          return room;
+        }
+      }
+      client.roomId=undefined;
+    }
+    if(notifyClient)
+    {
+    const notification=this.createClientNotificationofMessage(` ${client.id} ${client.name} Not a part of any room yet`,RequstType.NOTIFY);
+    ws.send(notification);
+    }
+    
+    return undefined;
+  }
+
+  private createClientNotificationofMessage(message:string,type:RequstType){
+     const notification:RoomNotificationMessage={
+        message:message.trim(),
+        notificationOf:type,
+        type:RequstType.NOTIFY
+      }
+      return JSON.stringify(notification);
+  }
+
+  private broadcastNotification(room:Room,sender:Client,notification:string)
+  {
+    room.clients.forEach((otherClient) => {
+        if(otherClient!=sender){
+        otherClient.ws.send(notification);
+        }
+      });
   }
 }

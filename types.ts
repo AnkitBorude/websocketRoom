@@ -51,5 +51,5 @@ export interface LeaveMessage extends BaseMessage{
 export interface RoomNotificationMessage extends BaseMessage {
   type: RequstType.NOTIFY;
   message: string;
-  notificationOf: RequstType.JOIN | RequstType.MESSAGE | RequstType.LEAVE;
+  notificationOf:RequstType;
 };

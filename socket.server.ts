@@ -2,24 +2,15 @@ import { RequstType } from "./request.enum";
 import { RoomManager } from "./RoomManager.service";
 import { server } from "./static.server";
 import WebSocket from "ws";
-import { BaseMessage, ConnectionMessage, CreateMessage, JoinMessage, RenameMessage } from "./types";
+import { BaseMessage,CreateMessage, JoinMessage, RenameMessage } from "./types";
 
 const webSocketServer = new WebSocket.Server({ server });
 const roomService = new RoomManager();
 const PORT = 3000;
 
 webSocketServer.on("connection", (websocket) => {
-  const client = roomService.createClient(websocket);
-  const response: ConnectionMessage = {
-    id: client.id,
-    type: RequstType.CONNECT,
-    username: client.name,
-    message: "Welcome to server",
-  };
+  roomService.createClient(websocket);
   console.log("New Client connected on server");
-
-  websocket.send(JSON.stringify(response));
-
   websocket.on("message", (data) => {
     let parsedObj:BaseMessage;
     try {
@@ -43,6 +34,10 @@ webSocketServer.on("connection", (websocket) => {
       case RequstType.RENAME:
         roomService.renameUser(websocket, (parsedObj as RenameMessage).username);
         break;
+      case RequstType.LEAVE:
+      //on request of leave
+      roomService.leaveRoom(websocket);
+      break;
       default:
         websocket.send(
           JSON.stringify({ type: "error", message: "Invalid message type" }),
