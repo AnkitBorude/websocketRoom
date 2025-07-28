@@ -182,7 +182,7 @@ export class RoomManager {
       return;
     }
 
-    const messageTobeSent=this.messageFactory(RequstType.MESSAGE,message.trim())(room.id);
+    const messageTobeSent=this.messageFactory(RequstType.MESSAGE,message.trim())(room.id,client.name);
     room.clients.forEach((otherClient)=>{
       if(client!=otherClient)
       {
@@ -205,7 +205,7 @@ export class RoomManager {
   private messageFactory(
     request: RequstType.MESSAGE,
     message: string,
-  ): (roomId: number) => ChatMessage;
+  ): (roomId: number,sender:string) => ChatMessage;
   private messageFactory(
     request: RequstType.RENAME,
     message: string,
@@ -236,10 +236,11 @@ export class RoomManager {
           roomName
         });
       case RequstType.MESSAGE:
-        return (roomId: number): ChatMessage => ({
+        return (roomId: number,sender:string): ChatMessage => ({
           type: request,
           roomId,
-          message
+          message,
+          sender
         });
       case RequstType.RENAME:
         return (username: string): RenameMessage => ({

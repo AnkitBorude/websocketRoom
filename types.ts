@@ -27,6 +27,7 @@ export interface ChatMessage extends BaseMessage {
   type: RequstType.MESSAGE;
   roomId: number;
   message: string;
+  sender:string
 };
 
 export interface RenameMessage extends BaseMessage {

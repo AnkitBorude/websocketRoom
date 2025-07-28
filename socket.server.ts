@@ -2,7 +2,7 @@ import { RequstType } from "./request.enum";
 import { RoomManager } from "./RoomManager.service";
 import { server } from "./static.server";
 import WebSocket from "ws";
-import { BaseMessage,CreateMessage, JoinMessage, RenameMessage } from "./types";
+import { BaseMessage,ChatMessage,CreateMessage, JoinMessage, RenameMessage } from "./types";
 
 const webSocketServer = new WebSocket.Server({ server });
 const roomService = new RoomManager();
@@ -29,6 +29,7 @@ webSocketServer.on("connection", (websocket) => {
         roomService.joinRoom(websocket, (parsedObj as JoinMessage).roomId);
         break;
       case RequstType.MESSAGE:
+        roomService.sendMessage(websocket,(parsedObj as ChatMessage).message);
         //message on room
         break;
       case RequstType.RENAME:
