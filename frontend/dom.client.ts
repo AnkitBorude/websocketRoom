@@ -1,7 +1,7 @@
 import { createRoom, leaveRoom, renameUser } from "./socket.client.js";
 import { joinRoom } from "./socket.client.js";
 import { currentState,oldState,incomingMessageEvent } from "./state.js";
-import { ButtonHandlerMap, ConnectionMessage, CreateMessage, ElementType, InputBoxTypes, JoinMessage, LeaveMessage, RenameMessage, RequstType, RoomNotificationMessage } from "./types.client.js";
+import { ButtonHandlerMap, ChatMessage, ConnectionMessage, CreateMessage, ElementType, InputBoxTypes, JoinMessage, LeaveMessage, RenameMessage, RequstType, RoomNotificationMessage } from "./types.client.js";
 
 const MESSAGE_BOX= document.getElementById('messageBox');
 const USERNAME_INPUT_DIV:HTMLInputElement=document.getElementById('usernameInputDiv') as HTMLInputElement;
@@ -179,9 +179,34 @@ export function CreateRoombtnHandler() {
   console.log(payload);
 }
 
-export function SendMessagebtnHandler() {
-  console.log("Send message button clicked");
-}
+export function SendMessagebtnHandler() {}
+//   console.log("Send message button clicked");
+
+//   const message=InputelementMap.MESSAGE_INPUT?.value;
+//   if(!message)
+//   {
+//     alert("Enter a message to send");
+//     return;
+//   }
+//   //message should not greter than 200Words
+
+//   if(message.trim().length>200)
+//   {
+//     alert("Message could not be greter than 200 words")
+//   }
+
+//   const sanitizedMessage=sanitizeText(message.trim());
+//   // const payload:ChatMessage={
+//   //   message:sanitizedMessage,
+//   //   type:RequstType.MESSAGE
+//   // }
+
+//   //send message and append the message after receiving the acknowledgement then append the 
+//   //sent block
+//   //either for that i have update the message structure to accomodate the 
+//   //also some acjnowledgemnt mechanism to
+ 
+// }
 
 
 export function RenamebtnHandler() {
@@ -327,6 +352,10 @@ incomingMessageEvent.addEventListener(RequstType.LEAVE,withCustomDetail<LeaveMes
   currentState.set('activeMember',0);
   runChangeDetectioninState();
 }));
+
+incomingMessageEvent.addEventListener(RequstType.MESSAGE,withCustomDetail<ChatMessage>((message)=>{
+  appendRecievedMessageBubble(message.sender ?? "Anonymous",message.message);
+}))
 function runChangeDetectioninState()
 {
   currentState.forEach((value,key)=>{

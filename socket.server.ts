@@ -29,7 +29,7 @@ webSocketServer.on("connection", (websocket) => {
         roomService.joinRoom(websocket, (parsedObj as JoinMessage).roomId);
         break;
       case RequstType.MESSAGE:
-        roomService.sendMessage(websocket,(parsedObj as ChatMessage).message);
+        roomService.sendMessage(websocket,parsedObj as ChatMessage);
         //message on room
         break;
       case RequstType.RENAME:

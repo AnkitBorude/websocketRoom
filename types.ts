@@ -27,7 +27,8 @@ export interface ChatMessage extends BaseMessage {
   type: RequstType.MESSAGE;
   roomId: number;
   message: string;
-  sender:string
+  sender:string,
+  id?:string
 };
 
 export interface RenameMessage extends BaseMessage {
@@ -53,4 +54,5 @@ export interface RoomNotificationMessage extends BaseMessage {
   type: RequstType.NOTIFY;
   message: string;
   notificationOf:RequstType;
+  additional?:Record<string,string>
 };

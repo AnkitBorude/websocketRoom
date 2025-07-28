@@ -9,6 +9,7 @@ import {
   RenameMessage,
   RoomNotificationMessage,
 } from "./types";
+
 type Client = {
   id: number;
   name: string;
@@ -166,9 +167,11 @@ export class RoomManager {
     client.ws.send(JSON.stringify(leftNotificationToUser));
   }
 
-  sendMessage(ws:WebSocket,message:string)
+  sendMessage(ws:WebSocket,messageObject:ChatMessage)
   {
     const client=this.getClientBySocket(ws);
+    const message=messageObject.message;
+    const messageId=messageObject.id ?? "0";
     if(!this.isClientExists(ws,client)){return;}
     //just to off this f*cking eslint error of undefined client
     if(!client){return};
@@ -190,7 +193,7 @@ export class RoomManager {
       }
     })
     
-    const successNotificationToClient=this.createClientNotificationofMessage("Message Sent Successfully",RequstType.MESSAGE);
+    const successNotificationToClient=this.createClientNotificationofMessage("Message Sent Successfully",RequstType.MESSAGE,{messageId});
     ws.send(successNotificationToClient);
   }
   // Overloade signatures
@@ -317,11 +320,12 @@ export class RoomManager {
     return undefined;
   }
 
-  private createClientNotificationofMessage(message:string,type:RequstType){
+  private createClientNotificationofMessage(message:string,type:RequstType,additional?:Record<string,string>){
      const notification:RoomNotificationMessage={
         message:message.trim(),
         notificationOf:type,
-        type:RequstType.NOTIFY
+        type:RequstType.NOTIFY,
+        additional
       }
       return JSON.stringify(notification);
   }
