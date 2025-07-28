@@ -1,6 +1,7 @@
-import { createRoom, leaveRoom, renameUser } from "./socket.client.js";
+
+import { createRoom, leaveRoom, renameUser,sendMessage } from "./socket.client.js";
 import { joinRoom } from "./socket.client.js";
-import { currentState,oldState,incomingMessageEvent } from "./state.js";
+import { currentState,oldState,incomingMessageEvent, trackPendingMessageACK, pendingMessages} from "./state.js";
 import { ButtonHandlerMap, ChatMessage, ConnectionMessage, CreateMessage, ElementType, InputBoxTypes, JoinMessage, LeaveMessage, RenameMessage, RequstType, RoomNotificationMessage } from "./types.client.js";
 
 const MESSAGE_BOX= document.getElementById('messageBox');
@@ -58,6 +59,7 @@ export function appendRecievedMessageBubble(senderName: string, messageText: str
     </div>
     <p class="text-sm font-normal text-white">${messageText}</p>
   `;
+  wrapper.scrollIntoView();
   MESSAGE_BOX.appendChild(wrapper);
 }
 
@@ -81,7 +83,7 @@ export function appendOwnMessageBubble(messageText: string) {
     <p class="text-sm font-normal text-white">${messageText}</p>
     <span class="text-sm font-normal text-gray-200 self-end pe-2">${formattedTime}</span>
   `;
-
+  wrapper.focus();
   MESSAGE_BOX.appendChild(wrapper);
 }
 
@@ -104,7 +106,7 @@ export function appendInfoAlert(message: string) {
   alertDiv.setAttribute("role", "alert");
 
   alertDiv.innerHTML = `
-    <span class="font-bold">Info alert!</span> ${message}
+    <span class="font-bold"></span> ${message}
     <span class="text-sm font-normal text-gray-300 pe-2">${formattedTime}</span>
   `;
 
@@ -154,7 +156,11 @@ export function JoinRoombtnHandler() {
     roomId:sRoomId
   }
   joinRoom(payload);
-  console.log(payload);
+   const inputBox=InputelementMap.JOIN_ROOM_INPUT;
+  if(inputBox)
+  {
+    inputBox.value="";
+  }
 }
 
 export function CreateRoombtnHandler() {
@@ -176,37 +182,51 @@ export function CreateRoombtnHandler() {
     roomName:sRoomName
   }
   createRoom(payload);
-  console.log(payload);
+   const inputBox=InputelementMap.CREATE_ROOM_INPUT;
+  if(inputBox)
+  {
+    inputBox.value="";
+  }
 }
 
-export function SendMessagebtnHandler() {}
-//   console.log("Send message button clicked");
+export function SendMessagebtnHandler() {
+  console.log("Send message button clicked");
 
-//   const message=InputelementMap.MESSAGE_INPUT?.value;
-//   if(!message)
-//   {
-//     alert("Enter a message to send");
-//     return;
-//   }
-//   //message should not greter than 200Words
+  const message=InputelementMap.MESSAGE_INPUT?.value;
+  if(!message)
+  {
+    alert("Enter a message to send");
+    return;
+  }
+  //message should not greter than 200Words
 
-//   if(message.trim().length>200)
-//   {
-//     alert("Message could not be greter than 200 words")
-//   }
+  if(message.trim().length>200)
+  {
+    alert("Message could not be greter than 200 words")
+  }
 
-//   const sanitizedMessage=sanitizeText(message.trim());
-//   // const payload:ChatMessage={
-//   //   message:sanitizedMessage,
-//   //   type:RequstType.MESSAGE
-//   // }
-
-//   //send message and append the message after receiving the acknowledgement then append the 
-//   //sent block
-//   //either for that i have update the message structure to accomodate the 
-//   //also some acjnowledgemnt mechanism to
- 
-// }
+  const randomMessageId=Math.round(Math.random()*1000).toString();
+  const sanitizedMessage=sanitizeText(message.trim());
+  const payload:ChatMessage={
+    message:sanitizedMessage,
+    type:RequstType.MESSAGE,
+    id:randomMessageId
+  }
+  //in case if no tracking required (bad practice ) then 
+  if(currentState.get('roomId')!==0)
+  {
+    trackPendingMessageACK(randomMessageId,payload);
+    //tracking the request if the room is joined otherwise do not 
+    //track this is temporary solution do not
+  }
+  
+  sendMessage(payload); 
+  const inputBox=InputelementMap.MESSAGE_INPUT;
+  if(inputBox)
+  {
+    inputBox.value="";
+  }
+}
 
 
 export function RenamebtnHandler() {
@@ -311,7 +331,7 @@ incomingMessageEvent.addEventListener(RequstType.CREATE,withCustomDetail<CreateM
 }));
 
 incomingMessageEvent.addEventListener(RequstType.NOTIFY,withCustomDetail<RoomNotificationMessage>((message)=>{
-   appendInfoAlert(message.message);
+   
   if(message.notificationOf==RequstType.JOIN)
   {
     currentState.set('activeMember',+(currentState.get('activeMember') ?? 0 )+1);
@@ -322,6 +342,32 @@ incomingMessageEvent.addEventListener(RequstType.NOTIFY,withCustomDetail<RoomNot
     currentState.set('activeMember',+(currentState.get('activeMember') ?? 0 )-1);
     runChangeDetectioninState();
   }
+  else if(message.notificationOf==RequstType.MESSAGE)
+  {
+    //ack received for the message
+    const messageId=message.additional?.messageId;
+    if(messageId)
+    {
+      if(messageId!=="0")
+      {
+        const metadata=pendingMessages.get(messageId)
+        if(metadata)
+        {
+          clearTimeout(metadata.timeout);
+          appendOwnMessageBubble(metadata.message.message);
+          pendingMessages.delete(messageId);
+          return;
+        }
+         //this means the message id is received of a message which is been
+        //retried multiple times and backoffed or duplicate ack recieved
+      }
+
+      //untracked message received which is already appended in UI
+    }
+    return;
+  }
+
+  appendInfoAlert(message.message);
 }));
 
 incomingMessageEvent.addEventListener(RequstType.CONNECT,withCustomDetail<ConnectionMessage>((message)=>{

@@ -1,6 +1,7 @@
 
 import { appendInfoAlert} from "./dom.client.js";
-import { BaseMessage, CreateMessage, JoinMessage, LeaveMessage, RenameMessage} from "./types.client.js";
+import { BaseMessage, CreateMessage, JoinMessage, LeaveMessage, 
+  RenameMessage,ChatMessage} from "./types.client.js";
 import { incomingMessageEvent } from "./state.js";
 
 
@@ -100,6 +101,23 @@ export function leaveRoom(payload:LeaveMessage)
     appendInfoAlert("Problem during connection : SOCKET CLOSED");
 }
 
+export function sendMessage(payload:ChatMessage)
+{
+    if(isSocketOpen())
+    {
+      //Send message to server
+      try{
+      socket.send(JSON.stringify(payload));
+      }catch(error)
+      {
+        appendInfoAlert("Problem while sending message");
+        console.log(error);
+      }
+      return;
+    }
+    appendInfoAlert("Problem during connection : SOCKET CLOSED");
+
+}
 function isSocketOpen():boolean
 {
   if (!socket || socket.readyState !== WebSocket.OPEN) {

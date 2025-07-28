@@ -313,7 +313,7 @@ export class RoomManager {
     }
     if(notifyClient)
     {
-    const notification=this.createClientNotificationofMessage(` ${client.id} ${client.name} Not a part of any room yet`,RequstType.NOTIFY);
+    const notification=this.createClientNotificationofMessage(` User id: ${client.id} ${client.name} Not a part of any room yet`,RequstType.NOTIFY);
     ws.send(notification);
     }
     
